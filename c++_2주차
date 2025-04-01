@@ -1,0 +1,89 @@
+#include <iostream>
+#include <vector>
+
+using namespace std;
+
+const int ROWS = 5;
+const int COLS = 4;
+const int TRAINS = 3;
+
+vector<vector<int>> trains[TRAINS];
+int adult_count = 0, youth_count = 0;
+const int ADULT_PRICE = 25000;
+const int YOUTH_PRICE = 18000;
+
+void initializeSeats() {
+    for (int t = 0; t < TRAINS; t++) {
+        trains[t] = vector<vector<int>>(ROWS, vector<int>(COLS, 0));
+    }
+}
+
+void displaySeats() {
+    for (int t = 0; t < TRAINS; t++) {
+        cout << "\nTrain " << (t + 1) << "\n";
+        for (int i = 0; i < ROWS; i++) {
+            for (int j = 0; j < COLS; j++) {
+                cout << trains[t][i][j] << " ";
+            }
+            cout << endl;
+        }
+    }
+}
+
+bool reserveSeat(int train, int row, int col) {
+    if (train < 1 || train > TRAINS || row < 1 || row > ROWS || col < 1 || col > COLS) {
+        cout << "Invalid seat selection.\n";
+        return false;
+    }
+    if (trains[train - 1][row - 1][col - 1] == 1) {
+        cout << "Seat already reserved. Choose another seat.\n";
+        return false;
+    }
+    trains[train - 1][row - 1][col - 1] = 1;
+    return true;
+}
+
+bool changeReservation(int train, int oldRow, int oldCol, int newRow, int newCol) {
+    if (reserveSeat(train, newRow, newCol)) {
+        trains[train - 1][oldRow - 1][oldCol - 1] = 0;
+        return true;
+    }
+    return false;
+}
+
+void calculateTotal() {
+    int total = (adult_count * ADULT_PRICE) + (youth_count * YOUTH_PRICE);
+    cout << "Total Amount: " << total << " Won\n";
+}
+
+int main() {
+    initializeSeats();
+    int choice;
+    do {
+        cout << "\nTrain Reservation System\n";
+        cout << "1. Reserve Seat\n2. Change Reservation\n3. Exit\n";
+        cout << "Enter your choice: ";
+        cin >> choice;
+
+        if (choice == 1) {
+            int train, row, col;
+            cout << "Enter train number (1-3): "; cin >> train;
+            cout << "Enter row and column: "; cin >> row >> col;
+            if (reserveSeat(train, row, col)) {
+                int age;
+                cout << "Enter age (1 for Adult, 2 for Youth): "; cin >> age;
+                if (age == 1) adult_count++;
+                else if (age == 2) youth_count++;
+            }
+        } else if (choice == 2) {
+            int train, oldRow, oldCol, newRow, newCol;
+            cout << "Enter train number (1-3): "; cin >> train;
+            cout << "Enter current seat (row and column): "; cin >> oldRow >> oldCol;
+            cout << "Enter new seat (row and column): "; cin >> newRow >> newCol;
+            changeReservation(train, oldRow, oldCol, newRow, newCol);
+        }
+    } while (choice != 3);
+
+    calculateTotal();
+    return 0;
+}
