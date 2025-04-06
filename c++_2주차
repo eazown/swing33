@@ -22,8 +22,8 @@ void initializeSeats() {
 void displaySeats() {
     for (int t = 0; t < TRAINS; t++) {
         cout << "\n[기차 " << (t + 1) << " 좌석 현황]\n";
-        cout << "      1  2     3  4 (" << t + 1 << "호차)" << endl;
-        cout << "      -------------" << endl;
+        cout << "      1  2    3  4 (" << t + 1 << "호차)" << endl;
+        cout << "      --------------------" << endl;
         for (int i = 0; i < ROWS; i++) {
             cout << "      ";
             for (int j = 0; j < COLS; j++) {
@@ -58,13 +58,35 @@ bool reserveSeat(int train, int row, int col) {
     return true;
 }
 
-bool changeReservation(int train, int oldRow, int oldCol, int newRow, int newCol) {
-    if (reserveSeat(train, newRow, newCol)) {
-        trains[train - 1][oldRow - 1][oldCol - 1] = 0;
-        cout << "예약이 변경되었습니다.\n";
-        return true;
+bool changeReservation(int oldTrain, int oldRow, int oldCol, int newTrain, int newRow, int newCol) {
+    if (oldTrain < 1 || oldTrain > TRAINS || newTrain < 1 || newTrain > TRAINS ||
+        oldRow < 1 || oldRow > ROWS || oldCol < 1 || oldCol > COLS ||
+        newRow < 1 || newRow > ROWS || newCol < 1 || newCol > COLS) {
+        cout << "없는 좌석입니다. 다시 입력해주세요.\n";
+        return false;
     }
-    return false;
+
+    oldTrain -= 1; oldRow -= 1; oldCol -= 1;
+    newTrain -= 1; newRow -= 1; newCol -= 1;
+
+    if (trains[oldTrain][oldRow][oldCol] == 0) {
+        cout << "현재 좌석이 틀렸습니다. 다시 입력해주세요.\n";
+        return false;
+    }
+    if (oldTrain == newTrain && oldRow == newRow && oldCol == newCol) {
+        cout << "똑같은 자리입니다. 다른 좌석을 선택하세요.\n";
+        return false;
+    }
+    if (trains[newTrain][newRow][newCol] != 0) {
+        cout << "이미 예약되었습니다. 다른 좌석을 선택해주세요.\n";
+        return false;
+    }
+
+    trains[oldTrain][oldRow][oldCol] = 0;
+    trains[newTrain][newRow][newCol] = 1;
+    cout << "예약이 변경되었습니다.\n";
+    cout << "변경된 좌석 → " << newTrain + 1 << "호차, " << newRow + 1 << "열, " << newCol + 1 << "번 좌석\n";
+    return true;
 }
 
 void calculateTotal() {
@@ -80,7 +102,7 @@ int main() {
     int choice;
     do {
         cout << "\n기차 좌석 예매 시스템\n";
-        cout << "1. 좌석 예매\n2. 예약 변경\n3. 좌석 보기\n4. 종료\n";
+        cout << "1. 좌석 예매\n2. 예약 변경\n3. 종료\n";
         cout << "메뉴를 선택하세요: ";
         cin >> choice;
 
@@ -114,22 +136,27 @@ int main() {
                 }
             }
 
-            calculateTotal();
         }
         else if (choice == 2) {
-            int train, oldRow, oldCol, newRow, newCol;
+            int num_changes;
             displaySeats();
-            cout << "\n기차 번호 (1~3): "; cin >> train;
-            cout << "기존 좌석 (행 열): "; cin >> oldRow >> oldCol;
-            cout << "변경 좌석 (행 열): "; cin >> newRow >> newCol;
-            changeReservation(train, oldRow, oldCol, newRow, newCol);
+            cout << "바꿀 좌석의 개수를 입력하세요: "; cin >> num_changes;
+            cout << "현재 좌석과 바꿀 좌석을 입력해주세요\n";
+            for (int i = 0; i < num_changes; ++i) {
+                int oldTrain, oldRow, oldCol, newTrain, newRow, newCol;
+                cout << i + 1 << "번째 현재 좌석(H호차, N열, M열) 과 바꿀 좌석(H호차, N열, M열): ";
+                cin >> oldTrain >> oldRow >> oldCol >> newTrain >> newRow >> newCol;
+                if (!changeReservation(oldTrain, oldRow, oldCol, newTrain, newRow, newCol)) {
+                    i--; // 실패한 경우 같은 인덱스로 재시도
+                }
+            }
         }
-        else if (choice == 3) {
-            displaySeats();
-        }
-    } while (choice != 4);
+    } while (choice != 3);
 
     calculateTotal();
+    cout << "예매 시스템을 종료합니다.\n";
+    return 0;
+}
     cout << "예매 시스템을 종료합니다.\n";
     return 0;
 }
